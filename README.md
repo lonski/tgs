@@ -1,4 +1,8 @@
 # Thumbnailator
+
+[![Build Status](https://travis-ci.org/lonski/thumbnailator.svg?branch=master)](https://travis-ci.org/lonski/thumbnailator)
+
+
 Utility for generating image thumbnails.
 
 ## Building
