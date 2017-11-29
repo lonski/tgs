@@ -29,5 +29,4 @@ Example:
 
 ## TODO:
 List of things to be implemented:
-* Generating thumbnails concurrently
 * Web service that accepts list of images to generate thumbnails via json api
