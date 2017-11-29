@@ -14,13 +14,20 @@ cargo build && cargo run
 ## Usage
 
 ### Commandline interface
-Provide two arguments: first image to be resized, second: thumbnail output path:
+
+Parameters:
 ```
-./thumnailator <image-to-be-resized-path> <output-thumbnail-path>
+--images=path1,path2,..,pathN - list of images to generate thumbnails
+--prefix=<string> - thumbnail filename prefix (default: --prefix=thumb_)
+--size=<number> - thumbnail width in pixels (default: --size=200)
+```
+
+Example:
+```
+./thumbnailator --images=/tmp/img1.jpg,/tmp/img2.png
 ```
 
 ## TODO:
 List of things to be implemented:
-* Support for multiple images
 * Generating thumbnails concurrently
 * Web service that accepts list of images to generate thumbnails via json api
