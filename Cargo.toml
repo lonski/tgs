@@ -4,4 +4,6 @@ version = "0.1.0"
 authors = ["Michal Lonski <michal.lonski@nokia.com>"]
 
 [dependencies]
-image = "*"
+image = "0.17.0"
+threadpool = "1.7.1"
+num_cpus = "1.7.0"

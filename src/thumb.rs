@@ -6,7 +6,7 @@ use self::image::FilterType;
 use std::path::Path;
 use std::fs::File;
 
-pub fn thumbnailze(image_fn: String, thumb_fn: String, size: u32) -> Result<(), String> {
+pub fn thumbnailze(image_fn: &String, thumb_fn: &String, size: u32) -> Result<(), String> {
     let img = image::open(&Path::new(&image_fn));
     match img {
         Ok(img) => {

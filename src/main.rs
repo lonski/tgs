@@ -1,7 +1,12 @@
+extern crate num_cpus;
+extern crate threadpool;
+
 mod config;
 mod thumb;
 
 use std::env;
+use std::sync::mpsc::channel;
+use threadpool::ThreadPool;
 use thumb::thumbnailze;
 use thumb::create_thumbnail_filename;
 use config::Config;
@@ -10,11 +15,7 @@ fn main() {
     let args: Vec<String> = env::args().skip(1).collect();
 
     match Config::new(&args) {
-        Ok(config) => {
-            if let Err(e) = generate_thumbnails(config) {
-                println!("Failed to generate thumbnails: {}", e);
-            }
-        }
+        Ok(config) => generate_thumbnails(config),
         Err(e) => {
             println!("Error when parsing arguments: {}", e);
             println!("\nUsage:");
@@ -25,11 +26,30 @@ fn main() {
     }
 }
 
-fn generate_thumbnails(config: Config) -> Result<(), String> {
+fn generate_thumbnails(config: Config) {
+    let num_images = config.images.len();
+    let pool = ThreadPool::new(num_cpus::get());
+    let (tx, rx) = channel();
+
     for image in config.images {
         let thumb_fn = create_thumbnail_filename(&image, &config.prefix);
-        println!("Generating thumbnail: <{}>", &thumb_fn);
-        thumbnailze(image, thumb_fn, config.size)?;
+        let size = config.size;
+        let tx = tx.clone();
+
+        pool.execute(move || {
+            println!("Generating thumbnail: <{}>", &thumb_fn);
+            if let Err(e) = thumbnailze(&image, &thumb_fn, size) {
+                println!(
+                    "Failed to generate thumbnail from image <{}>: {}",
+                    &image,
+                    e
+                );
+            };
+            tx.send(()).unwrap();
+        });
     }
-    Ok(())
+
+    for _ in 0..num_images {
+        rx.recv().unwrap();
+    }
 }
