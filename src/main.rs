@@ -1,8 +1,11 @@
 extern crate num_cpus;
 extern crate threadpool;
+extern crate iron;
+extern crate router;
 
 mod config;
 mod thumb;
+mod service;
 
 use std::env;
 use std::sync::mpsc::channel;
@@ -15,13 +18,25 @@ fn main() {
     let args: Vec<String> = env::args().skip(1).collect();
 
     match Config::new(&args) {
-        Ok(config) => generate_thumbnails(config),
+        Ok(config) => {
+            if config.start_service {
+                service::start(config.service_port);
+            } else {
+                generate_thumbnails(config);
+            }
+        }
         Err(e) => {
-            println!("Error when parsing arguments: {}", e);
-            println!("\nUsage:");
-            println!("\t--images=path1,path2,..,pathN - list of images to generate thumbnails");
-            println!("\t--prefix=<string> - thumbnail filename prefix (default: --prefix=thumb_)");
-            println!("\t--size=<number> - thumbnail width in pixels (default: --size=200)");
+            print!("Error when parsing arguments: {}", e);
+            print!("\n\nUsage:");
+            print!("\n\n  CLI:");
+            print!("\n\t--images=path1,path2,..,pathN - list of images to generate thumbnails");
+            print!("\n\t--prefix=<string> - thumbnail filename prefix (default: --prefix=thumb_)");
+            print!("\n\t--size=<number> - thumbnail width in pixels (default: --size=200)");
+            print!("\n\n  Web service:");
+            print!("\n\t--start-service=[true|false] - if set to true,");
+            print!("server with json api will be started (default: --start-service=false)");
+            print!("\n\t--service-port=<number> - port on which web service ");
+            print!("should be started (default: --service-port=8080");
         }
     }
 }
