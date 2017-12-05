@@ -19,5 +19,14 @@ fn generate_thumbnails(request: &mut Request) -> IronResult<Response> {
     request.body.read_to_string(&mut payload).unwrap();
     println!("Received payload: {}", &payload);
 
+    let json: GenerateRequest = ::serde_json::from_str(&payload).unwrap();
+    println!("JSON: {:?}", &json);
+
     Ok(Response::with(status::Ok))
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+struct GenerateRequest {
+    images: Vec<String>,
+    size: u32,
 }

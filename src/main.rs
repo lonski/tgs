@@ -3,6 +3,12 @@ extern crate threadpool;
 extern crate iron;
 extern crate router;
 
+#[macro_use]
+extern crate serde_derive;
+
+extern crate serde;
+extern crate serde_json;
+
 mod config;
 mod thumb;
 mod service;
