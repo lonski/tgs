@@ -1,5 +1,5 @@
 [package]
-name = "thumbnailator"
+name = "tgs"
 version = "0.1.0"
 authors = ["Michal Lonski <michal.lonski@nokia.com>"]
 

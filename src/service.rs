@@ -6,8 +6,18 @@ use std::error::Error;
 
 use thumb;
 
+/// # Starts server accepting json requests
+///
+/// ## Routes:
+/// * POST /generate
+///   * format: json
+///   * fields:
+///     * images - input image filenames as list of strings
+///     * prefix - thumbnails prefix as string
+///     * size - thumbnails width as int
+///
 pub fn start(port: u32) {
-    println!("Starting thumbnailator service on port {}", port);
+    println!("Starting service on port {}", port);
 
     let mut router = Router::new();
     router.post("/generate", handle_generate_request, "generate");

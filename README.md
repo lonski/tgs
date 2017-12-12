@@ -1,9 +1,9 @@
-# Thumbnailator
+# Thumbnail Generation Service (TGS)
 
-[![Build Status](https://travis-ci.org/lonski/thumbnailator.svg?branch=master)](https://travis-ci.org/lonski/thumbnailator)
+[![Build Status](https://travis-ci.org/lonski/tgs.svg?branch=master)](https://travis-ci.org/lonski/tgs)
 
 
-Utility for generating image thumbnails.
+Utility for generating image thumbnails. Can be started in service mode as server accepting json requests.
 
 ## Building
 Enter repository root and type:
@@ -24,17 +24,17 @@ Parameters:
 
 Example:
 ```
-./thumbnailator --images=/tmp/img1.jpg,/tmp/img2.png
+./tgs --images=/tmp/img1.jpg,/tmp/img2.png
 ```
 
 ### Service mode
 
-Thumbnailator can be run as server accepting json requests. 
+Tgs can be run as server accepting json requests. 
 In service mode following route is available:
 
 Starting service:
 ```
-./thumbnailator --start-service --service-port=8080
+./tgs --start-service --service-port=8080
 ```
 
 Service port parameter is optional. Default port is 8080.

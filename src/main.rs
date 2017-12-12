@@ -40,7 +40,7 @@ fn main() {
             print!("\n\n  Web service:");
             print!("\n\t--start-service - server with json api will be started");
             print!("\n\t--service-port=<number> - port on which web service ");
-            print!("should be started (default: --service-port=8080");
+            print!("should be started (default: --service-port=8080\n");
         }
     }
 }
