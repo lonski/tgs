@@ -8,7 +8,7 @@ Utility for generating image thumbnails. Can be started in service mode as serve
 ## Building
 Enter repository root and type:
 ```
-cargo build && cargo run
+cargo build
 ```
 
 ## Usage
