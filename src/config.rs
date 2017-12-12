@@ -73,7 +73,7 @@ mod tests {
             String::from("--size=100"),
             String::from("--images=/tmp/foo.jpg,/tmp/bar.png"),
             String::from("--prefix=gnome_"),
-            String::from("--start-service=true"),
+            String::from("--start-service"),
             String::from("--service-port=9966"),
         ];
 
@@ -111,7 +111,7 @@ mod tests {
     #[test]
     fn should_parse_config_if_no_images_provided_and_service_is_going_to_be_started() {
         let args: Vec<String> = vec![
-            String::from("--start-service=true"),
+            String::from("--start-service"),
             String::from("--service-port=9966"),
         ];
 
