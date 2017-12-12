@@ -1,18 +1,25 @@
 extern crate image;
+extern crate num_cpus;
 
 use self::image::DynamicImage;
 use self::image::GenericImage;
 use self::image::FilterType;
 use std::path::Path;
 use std::fs::File;
+use threadpool::ThreadPool;
+use std::sync::mpsc::channel;
 
 /// # Generates thumbnails from given files in parallel.
 ///
-/// Arguments:
+/// ## Arguments:
 /// * files - list of images to resize
 /// * prefix - thumblail filename prefix (prefix_<original-filename>)
 /// * size - width of genrated thumbnails
-pub fn generate_thumbnails(files: Vec<String>, prefix: String, size: u32) {
+///
+/// ## Returns
+/// * Ok if all thumbnails were generated successfully
+/// * Vector of error messages if failed to generate any thumbnail
+pub fn generate(files: Vec<String>, prefix: String, size: u32) -> Result<(), Vec<String>> {
     let num_images = files.len();
     let pool = ThreadPool::new(num_cpus::get());
     let (tx, rx) = channel();
@@ -24,20 +31,25 @@ pub fn generate_thumbnails(files: Vec<String>, prefix: String, size: u32) {
 
         pool.execute(move || {
             println!("Generating thumbnail: <{}>", &thumb_fn);
-            if let Err(e) = thumbnailze(&image, &thumb_fn, size) {
-                println!(
+            let result = match thumbnailze(&image, &thumb_fn, size) {
+                Err(e) => Some(format!(
                     "Failed to generate thumbnail from image <{}>: {}",
                     &image,
                     e
-                );
+                )),
+                Ok(_) => None,
             };
-            tx.send(()).unwrap();
+            tx.send(result).unwrap();
         });
     }
 
-    for _ in 0..num_images {
-        rx.recv().unwrap();
-    }
+    let errs: Vec<String> = (0..num_images)
+        .map(|_| rx.recv().unwrap())
+        .filter(|r| r.is_some())
+        .map(|r| r.unwrap())
+        .collect();
+
+    if errs.is_empty() { Ok(()) } else { Err(errs) }
 }
 
 fn thumbnailze(image_fn: &String, thumb_fn: &String, size: u32) -> Result<(), String> {
@@ -89,7 +101,7 @@ fn save_image(image: &DynamicImage, path: &Path) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
 
-    use ::*;
+    use super::*;
 
     #[test]
     fn should_generate_thumb_path() {

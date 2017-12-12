@@ -1,4 +1,3 @@
-extern crate num_cpus;
 extern crate threadpool;
 extern crate iron;
 extern crate router;
@@ -14,10 +13,6 @@ mod thumb;
 mod service;
 
 use std::env;
-use std::sync::mpsc::channel;
-use threadpool::ThreadPool;
-use thumb::thumbnailze;
-use thumb::create_thumbnail_filename;
 use config::Config;
 
 fn main() {
@@ -28,7 +23,11 @@ fn main() {
             if config.start_service {
                 service::start(config.service_port);
             } else {
-                generate_thumbnails(config.images, config.prefix, config.size);
+                if let Err(errors) = thumb::generate(config.images, config.prefix, config.size) {
+                    for e in errors {
+                        println!("{}", e);
+                    }
+                }
             }
         }
         Err(e) => {
