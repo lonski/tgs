@@ -39,8 +39,7 @@ fn main() {
             print!("\n\t--prefix=<string> - thumbnail filename prefix (default: --prefix=thumb_)");
             print!("\n\t--size=<number> - thumbnail width in pixels (default: --size=200)");
             print!("\n\n  Web service:");
-            print!("\n\t--start-service=[true|false] - if set to true,");
-            print!("server with json api will be started (default: --start-service=false)");
+            print!("\n\t--start-service - server with json api will be started");
             print!("\n\t--service-port=<number> - port on which web service ");
             print!("should be started (default: --service-port=8080");
         }

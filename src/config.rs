@@ -22,14 +22,14 @@ impl Config {
             match iter.next() {
                 Some(arg) => {
                     let arg: Vec<&str> = arg.split('=').collect();
-                    if arg.len() != 2 {
+                    if arg.len() != 2 && arg[0] != "--start-service" {
                         return Err(format!("Invalid argument: {:?}", arg));
                     }
                     match arg[0] {
                         "--size" => cfg.size = parse_u32(arg[1])?,
                         "--images" => cfg.images = arg[1].split(',').map(String::from).collect(),
                         "--prefix" => cfg.prefix = String::from(arg[1]),
-                        "--start-service" => cfg.start_service = arg[1] == "true",
+                        "--start-service" => cfg.start_service = true,
                         "--service-port" => cfg.service_port = parse_u32(arg[1])?,
                         _ => return Err(format!("Unrecognized argument: {}", arg[0])),
                     }
