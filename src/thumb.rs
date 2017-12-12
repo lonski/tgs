@@ -6,7 +6,41 @@ use self::image::FilterType;
 use std::path::Path;
 use std::fs::File;
 
-pub fn thumbnailze(image_fn: &String, thumb_fn: &String, size: u32) -> Result<(), String> {
+/// # Generates thumbnails from given files in parallel.
+///
+/// Arguments:
+/// * files - list of images to resize
+/// * prefix - thumblail filename prefix (prefix_<original-filename>)
+/// * size - width of genrated thumbnails
+pub fn generate_thumbnails(files: Vec<String>, prefix: String, size: u32) {
+    let num_images = files.len();
+    let pool = ThreadPool::new(num_cpus::get());
+    let (tx, rx) = channel();
+
+    for image in files {
+        let thumb_fn = create_thumbnail_filename(&image, &prefix);
+        let size = size;
+        let tx = tx.clone();
+
+        pool.execute(move || {
+            println!("Generating thumbnail: <{}>", &thumb_fn);
+            if let Err(e) = thumbnailze(&image, &thumb_fn, size) {
+                println!(
+                    "Failed to generate thumbnail from image <{}>: {}",
+                    &image,
+                    e
+                );
+            };
+            tx.send(()).unwrap();
+        });
+    }
+
+    for _ in 0..num_images {
+        rx.recv().unwrap();
+    }
+}
+
+fn thumbnailze(image_fn: &String, thumb_fn: &String, size: u32) -> Result<(), String> {
     let img = image::open(&Path::new(&image_fn));
     match img {
         Ok(img) => {
@@ -18,7 +52,7 @@ pub fn thumbnailze(image_fn: &String, thumb_fn: &String, size: u32) -> Result<()
     Ok(())
 }
 
-pub fn create_thumbnail_filename(image_fn: &str, prefix: &str) -> String {
+fn create_thumbnail_filename(image_fn: &str, prefix: &str) -> String {
     let image_path = Path::new(image_fn);
     let dir = image_path.parent().unwrap_or(Path::new(""));
     let filename = format!(

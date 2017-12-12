@@ -28,7 +28,7 @@ fn main() {
             if config.start_service {
                 service::start(config.service_port);
             } else {
-                generate_thumbnails(config);
+                generate_thumbnails(config.images, config.prefix, config.size);
             }
         }
         Err(e) => {
@@ -43,33 +43,5 @@ fn main() {
             print!("\n\t--service-port=<number> - port on which web service ");
             print!("should be started (default: --service-port=8080");
         }
-    }
-}
-
-fn generate_thumbnails(config: Config) {
-    let num_images = config.images.len();
-    let pool = ThreadPool::new(num_cpus::get());
-    let (tx, rx) = channel();
-
-    for image in config.images {
-        let thumb_fn = create_thumbnail_filename(&image, &config.prefix);
-        let size = config.size;
-        let tx = tx.clone();
-
-        pool.execute(move || {
-            println!("Generating thumbnail: <{}>", &thumb_fn);
-            if let Err(e) = thumbnailze(&image, &thumb_fn, size) {
-                println!(
-                    "Failed to generate thumbnail from image <{}>: {}",
-                    &image,
-                    e
-                );
-            };
-            tx.send(()).unwrap();
-        });
-    }
-
-    for _ in 0..num_images {
-        rx.recv().unwrap();
     }
 }
