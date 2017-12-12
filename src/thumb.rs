@@ -1,12 +1,58 @@
 extern crate image;
+extern crate num_cpus;
 
 use self::image::DynamicImage;
 use self::image::GenericImage;
 use self::image::FilterType;
 use std::path::Path;
 use std::fs::File;
+use threadpool::ThreadPool;
+use std::sync::mpsc::channel;
 
-pub fn thumbnailze(image_fn: &String, thumb_fn: &String, size: u32) -> Result<(), String> {
+/// # Generates thumbnails from given files in parallel.
+///
+/// ## Arguments:
+/// * files - list of images to resize
+/// * prefix - thumblail filename prefix (prefix_<original-filename>)
+/// * size - width of genrated thumbnails
+///
+/// ## Returns
+/// * Ok if all thumbnails were generated successfully
+/// * Vector of error messages if failed to generate any thumbnail
+pub fn generate(files: Vec<String>, prefix: String, size: u32) -> Result<(), Vec<String>> {
+    let num_images = files.len();
+    let pool = ThreadPool::new(num_cpus::get());
+    let (tx, rx) = channel();
+
+    for image in files {
+        let thumb_fn = create_thumbnail_filename(&image, &prefix);
+        let size = size;
+        let tx = tx.clone();
+
+        pool.execute(move || {
+            println!("Generating thumbnail: <{}>", &thumb_fn);
+            let result = match thumbnailze(&image, &thumb_fn, size) {
+                Err(e) => Some(format!(
+                    "Failed to generate thumbnail from image <{}>: {}",
+                    &image,
+                    e
+                )),
+                Ok(_) => None,
+            };
+            tx.send(result).unwrap();
+        });
+    }
+
+    let errs: Vec<String> = (0..num_images)
+        .map(|_| rx.recv().unwrap())
+        .filter(|r| r.is_some())
+        .map(|r| r.unwrap())
+        .collect();
+
+    if errs.is_empty() { Ok(()) } else { Err(errs) }
+}
+
+fn thumbnailze(image_fn: &String, thumb_fn: &String, size: u32) -> Result<(), String> {
     let img = image::open(&Path::new(&image_fn));
     match img {
         Ok(img) => {
@@ -18,7 +64,7 @@ pub fn thumbnailze(image_fn: &String, thumb_fn: &String, size: u32) -> Result<()
     Ok(())
 }
 
-pub fn create_thumbnail_filename(image_fn: &str, prefix: &str) -> String {
+fn create_thumbnail_filename(image_fn: &str, prefix: &str) -> String {
     let image_path = Path::new(image_fn);
     let dir = image_path.parent().unwrap_or(Path::new(""));
     let filename = format!(
@@ -55,7 +101,7 @@ fn save_image(image: &DynamicImage, path: &Path) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
 
-    use ::*;
+    use super::*;
 
     #[test]
     fn should_generate_thumb_path() {

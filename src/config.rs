@@ -2,6 +2,8 @@ pub struct Config {
     pub images: Vec<String>,
     pub size: u32,
     pub prefix: String,
+    pub start_service: bool,
+    pub service_port: u32,
 }
 
 impl Config {
@@ -12,19 +14,23 @@ impl Config {
             images: Vec::new(),
             size: 200,
             prefix: String::from("thumb_"),
+            start_service: false,
+            service_port: 8080,
         };
 
         loop {
             match iter.next() {
                 Some(arg) => {
                     let arg: Vec<&str> = arg.split('=').collect();
-                    if arg.len() != 2 {
+                    if arg.len() != 2 && arg[0] != "--start-service" {
                         return Err(format!("Invalid argument: {:?}", arg));
                     }
                     match arg[0] {
-                        "--size" => cfg.size = parse_size(arg[1])?,
+                        "--size" => cfg.size = parse_u32(arg[1])?,
                         "--images" => cfg.images = arg[1].split(',').map(String::from).collect(),
                         "--prefix" => cfg.prefix = String::from(arg[1]),
+                        "--start-service" => cfg.start_service = true,
+                        "--service-port" => cfg.service_port = parse_u32(arg[1])?,
                         _ => return Err(format!("Unrecognized argument: {}", arg[0])),
                     }
                 }
@@ -32,7 +38,7 @@ impl Config {
             }
         }
 
-        if cfg.images.is_empty() {
+        if !cfg.start_service && cfg.images.is_empty() {
             return Err(String::from("No images provided."));
         }
 
@@ -40,10 +46,10 @@ impl Config {
     }
 }
 
-fn parse_size(s: &str) -> Result<u32, String> {
+fn parse_u32(s: &str) -> Result<u32, String> {
     match s.parse::<u32>() {
         Ok(size) => return Ok(size),
-        Err(_) => return Err(format!("Size argument '{}' is not a valid number.", s)),
+        Err(_) => return Err(format!("Argument '{}' is not a valid number.", s)),
     };
 }
 
@@ -67,6 +73,8 @@ mod tests {
             String::from("--size=100"),
             String::from("--images=/tmp/foo.jpg,/tmp/bar.png"),
             String::from("--prefix=gnome_"),
+            String::from("--start-service"),
+            String::from("--service-port=9966"),
         ];
 
         let cfg = Config::new(&args).unwrap();
@@ -74,6 +82,8 @@ mod tests {
         assert_eq!(cfg.size, 100);
         assert_eq!(cfg.images, vec!["/tmp/foo.jpg", "/tmp/bar.png"]);
         assert_eq!(cfg.prefix, "gnome_");
+        assert_eq!(cfg.start_service, true);
+        assert_eq!(cfg.service_port, 9966);
     }
 
     #[test]
@@ -85,7 +95,8 @@ mod tests {
         assert_eq!(cfg.size, 200);
         assert_eq!(cfg.images, vec!["/tmp/foo.jpg", "/tmp/bar.png"]);
         assert_eq!(cfg.prefix, "thumb_");
-
+        assert_eq!(cfg.start_service, false);
+        assert_eq!(cfg.service_port, 8080);
     }
 
     #[test]
@@ -95,5 +106,17 @@ mod tests {
         let cfg = Config::new(&args);
 
         assert!(cfg.is_err());
+    }
+
+    #[test]
+    fn should_parse_config_if_no_images_provided_and_service_is_going_to_be_started() {
+        let args: Vec<String> = vec![
+            String::from("--start-service"),
+            String::from("--service-port=9966"),
+        ];
+
+        let cfg = Config::new(&args);
+
+        assert!(cfg.is_ok());
     }
 }
